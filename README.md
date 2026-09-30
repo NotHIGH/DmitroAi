@@ -2,7 +2,7 @@
 
 Android chat app for the `Dima-dian-0.0.3` model.
 
-Tap **Обучить** in the chat to store 15 built-in question-and-answer examples on the device. After that, the chat finds a simple word match and returns the closest saved answer. This is a small offline prototype, not a neural network; no model weights or inference API are connected yet.
+Tap **Обучить** in the chat to spend one minute processing a larger set of built-in examples. The app saves the examples, conversation, and notes you ask it to remember on the device. It also remembers question-and-answer pairs it can match. This is a lightweight offline retrieval prototype, not a neural network; no model weights or inference API are connected yet.
 
 ## Build
 

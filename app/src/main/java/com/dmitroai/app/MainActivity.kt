@@ -2,6 +2,7 @@ package com.dmitroai.app
 
 import android.os.Bundle
 import android.content.SharedPreferences
+import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -90,8 +91,73 @@ private val trainingExamples = listOf(
     TrainingExample("сколько будет два плюс два", "Два плюс два будет четыре."),
     TrainingExample("какая сегодня погода", "Я пока не подключён к интернету и не знаю текущую погоду."),
     TrainingExample("помоги придумать идею", "Давай! Расскажи тему и для кого нужна идея."),
-    TrainingExample("что ты такое", "Я Dima-dian-0.0.3 — небольшой чат-помощник, который учится на простых примерах.")
+    TrainingExample("что ты такое", "Я Dima-dian-0.0.3 — небольшой чат-помощник, который учится на простых примерах."),
+    TrainingExample("добрый день", "Добрый день! Что будем делать?"),
+    TrainingExample("добрый вечер", "Добрый вечер! Рад продолжить разговор."),
+    TrainingExample("хай", "Хай! Чем могу помочь?"),
+    TrainingExample("ты искусственный интеллект", "Я простая локальная программа, которая ищет ответы среди примеров."),
+    TrainingExample("что такое нейросеть", "Нейросеть — программа из связанных вычислительных узлов, которая учится находить закономерности в данных."),
+    TrainingExample("как работает ии", "Программа сравнивает запрос с тем, чему научилась на примерах, и выбирает подходящий ответ."),
+    TrainingExample("как работает компьютер", "Компьютер выполняет команды программ и обрабатывает данные с помощью процессора и памяти."),
+    TrainingExample("что такое алгоритм", "Алгоритм — последовательность шагов для решения задачи."),
+    TrainingExample("что такое программа", "Программа — набор команд, которые компьютер выполняет для решения задачи."),
+    TrainingExample("что такое переменная", "Переменная — именованное место, где программа хранит значение."),
+    TrainingExample("что такое kotlin", "Kotlin — современный язык программирования, который часто используют для Android-приложений."),
+    TrainingExample("что такое андроид", "Android — операционная система для телефонов и других устройств."),
+    TrainingExample("что такое интернет", "Интернет — всемирная сеть, которая соединяет устройства и позволяет обмениваться данными."),
+    TrainingExample("что такое память телефона", "Память телефона хранит приложения, фотографии, сообщения и другие файлы."),
+    TrainingExample("что такое приложение", "Приложение — программа, созданная для выполнения определённых задач на устройстве."),
+    TrainingExample("сколько будет один плюс один", "Один плюс один будет два."),
+    TrainingExample("сколько будет пять плюс три", "Пять плюс три будет восемь."),
+    TrainingExample("сколько будет десять минус четыре", "Десять минус четыре будет шесть."),
+    TrainingExample("сколько будет два умножить на три", "Два умножить на три будет шесть."),
+    TrainingExample("сколько будет восемь разделить на два", "Восемь разделить на два будет четыре."),
+    TrainingExample("сколько дней в неделе", "В неделе семь дней."),
+    TrainingExample("сколько месяцев в году", "В году двенадцать месяцев."),
+    TrainingExample("какого цвета небо", "Днём небо обычно кажется голубым."),
+    TrainingExample("почему небо голубое", "Воздух сильнее рассеивает короткие синие волны солнечного света, поэтому небо кажется голубым."),
+    TrainingExample("где живут люди", "Люди живут в разных странах, городах и сёлах по всему миру."),
+    TrainingExample("что такое солнце", "Солнце — звезда, которая даёт Земле свет и тепло."),
+    TrainingExample("что такое земля", "Земля — планета, на которой мы живём."),
+    TrainingExample("что такое вода", "Вода — прозрачная жидкость, необходимая людям, животным и растениям."),
+    TrainingExample("зачем спать", "Сон помогает организму отдыхать, восстанавливаться и сохранять силы."),
+    TrainingExample("зачем учиться", "Учёба помогает узнавать новое, развивать навыки и находить решения."),
+    TrainingExample("как начать программировать", "Выбери небольшой проект, изучи основы одного языка и пробуй писать код каждый день."),
+    TrainingExample("как создать игру", "Начни с простой идеи: выбери движок, создай персонажа и добавляй механику по шагам."),
+    TrainingExample("как придумать проект", "Выбери проблему, которая тебе интересна, и придумай маленькое приложение, способное её решить."),
+    TrainingExample("дай совет", "Разбей задачу на небольшие шаги и начни с самого простого."),
+    TrainingExample("мне грустно", "Жаль, что тебе грустно. Иногда помогает поговорить с близким человеком и рассказать, что случилось."),
+    TrainingExample("я устал", "Сделай небольшой перерыв, выпей воды и отдохни."),
+    TrainingExample("ты живой", "Нет, я программа в телефоне. Но я могу отвечать на сообщения."),
+    TrainingExample("у тебя есть интернет", "Сейчас у меня нет подключения к интернету. Я отвечаю по локальным примерам."),
+    TrainingExample("кто тебя создал", "Я Dima-dian-0.0.3 — проект персонального помощника Dima AI."),
+    TrainingExample("какая твоя версия", "Моя версия — Dima-dian-0.0.3."),
+    TrainingExample("что ты помнишь", "Я могу сохранять переписку и факты, которые ты попросишь запомнить."),
+    TrainingExample("можешь запоминать", "Да. Напиши «запомни, что ...», и я сохраню эту заметку на устройстве."),
+    TrainingExample("расскажи факт", "У осьминога три сердца."),
+    TrainingExample("назови животное", "Например, дельфин — умное морское млекопитающее."),
+    TrainingExample("назови число", "Семь."),
+    TrainingExample("напиши привет", "Привет!"),
+    TrainingExample("помоги с домашним заданием", "Пришли условие задания, и мы разберём его по шагам."),
+    TrainingExample("помоги с математикой", "Пришли пример, и я постараюсь решить его вместе с тобой."),
+    TrainingExample("что такое слово", "Слово — часть речи или языка, которая выражает значение."),
+    TrainingExample("что такое книга", "Книга — произведение с текстом или изображениями, напечатанное или электронное."),
+    TrainingExample("как дела у тебя", "Спасибо, у меня всё хорошо. Я готов помочь."),
+    TrainingExample("расскажи о себе", "Я Dima-dian-0.0.3. Пока я работаю без интернета и отвечаю по примерам, сохранённым на устройстве."),
+    TrainingExample("что делать если скучно", "Можно прогуляться, почитать, порисовать или начать небольшой творческий проект."),
+    TrainingExample("как тебя обучить", "Нажми кнопку «Обучить». Я обработаю примеры и сохраню их на устройстве."),
+    TrainingExample("ты можешь ошибаться", "Да. Я небольшой прототип и иногда могу подобрать неподходящий ответ."),
+    TrainingExample("до свидания", "До свидания! Возвращайся, когда захочешь поговорить."),
+    TrainingExample("спокойной ночи", "Спокойной ночи и хорошего отдыха!"),
+    TrainingExample("как тебя зовут", "Я Dima-dian-0.0.3, твой локальный помощник."),
+    TrainingExample("расскажи интересный факт", "Мёд при правильном хранении может сохраняться очень долго."),
+    TrainingExample("почему трава зелёная", "В листьях есть хлорофилл, который отражает зелёную часть света."),
+    TrainingExample("что такое друг", "Друг — человек, которому доверяют и с которым приятно проводить время."),
+    TrainingExample("как попросить тебя запомнить", "Напиши: «Запомни, что я люблю космос». Я сохраню эту заметку на устройстве.")
 )
+
+private const val TRAINING_DURATION_MS = 60_000L
+private const val MAX_SAVED_MESSAGES = 200
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,10 +180,14 @@ private fun ChatScreen() {
     val model = remember {
         LocalLearningModel(context.getSharedPreferences("dima_model", 0))
     }
-    val messages = remember { mutableStateListOf<ChatMessage>() }
+    val messages = remember {
+        mutableStateListOf<ChatMessage>().apply { addAll(model.loadConversation()) }
+    }
     var draft by remember { mutableStateOf("") }
     var isTrained by remember { mutableStateOf(model.isTrained()) }
     var trainingProgress by remember { mutableIntStateOf(-1) }
+    var learnedExampleCount by remember { mutableIntStateOf(model.exampleCount()) }
+    var isThinking by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
@@ -125,28 +195,46 @@ private fun ChatScreen() {
     fun startTraining() {
         if (trainingProgress >= 0) return
         scope.launch {
+            model.beginTraining()
             trainingProgress = 0
-            trainingExamples.forEachIndexed { index, _ ->
-                delay(90)
-                trainingProgress = (index + 1) * 100 / trainingExamples.size
+            val startedAt = SystemClock.elapsedRealtime()
+            while (SystemClock.elapsedRealtime() - startedAt < TRAINING_DURATION_MS) {
+                val elapsed = SystemClock.elapsedRealtime() - startedAt
+                trainingProgress = (elapsed * 100 / TRAINING_DURATION_MS).toInt().coerceIn(0, 99)
+                model.processTrainingProgress(trainingProgress)
+                delay(250)
             }
-            model.train()
+            model.finishTraining()
             isTrained = true
+            learnedExampleCount = model.exampleCount()
+            trainingProgress = 100
+            delay(700)
             trainingProgress = -1
         }
     }
 
     fun sendMessage(text: String) {
         val cleanText = text.trim()
-        if (cleanText.isEmpty()) return
+        if (cleanText.isEmpty() || isThinking) return
         messages.add(ChatMessage(cleanText, fromAssistant = false))
-        messages.add(ChatMessage(model.reply(cleanText), fromAssistant = true))
+        model.saveConversation(messages)
         draft = ""
         focusManager.clearFocus()
+        isThinking = true
+        scope.launch {
+            delay(900)
+            val answer = model.reply(cleanText, messages.dropLast(1).toList())
+            messages.add(ChatMessage(answer, fromAssistant = true))
+            model.saveConversation(messages)
+            learnedExampleCount = model.exampleCount()
+            isThinking = false
+        }
     }
 
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
+    LaunchedEffect(messages.size, isThinking) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(if (isThinking) messages.size else messages.lastIndex)
+        }
     }
 
     Scaffold(
@@ -159,6 +247,7 @@ private fun ChatScreen() {
                 onTrain = ::startTraining,
                 onNewChat = {
                     messages.clear()
+                    model.saveConversation(messages)
                     draft = ""
                 }
             )
@@ -185,12 +274,16 @@ private fun ChatScreen() {
                     Welcome(
                         isTrained = isTrained,
                         trainingProgress = trainingProgress,
+                        learnedExampleCount = learnedExampleCount,
                         onSuggestion = ::sendMessage
                     )
                 }
             }
             items(messages) { message ->
                 MessageBubble(message)
+            }
+            if (isThinking) {
+                item { ThinkingBubble() }
             }
             item { Spacer(Modifier.height(8.dp)) }
         }
@@ -259,6 +352,7 @@ private fun Header(
 private fun Welcome(
     isTrained: Boolean,
     trainingProgress: Int,
+    learnedExampleCount: Int,
     onSuggestion: (String) -> Unit
 ) {
     Column(modifier = Modifier.padding(top = 46.dp, bottom = 16.dp)) {
@@ -287,9 +381,9 @@ private fun Welcome(
         Spacer(Modifier.height(18.dp))
         Text(
             when {
-                trainingProgress >= 0 -> "Обучаю словарь: $trainingProgress%"
-                isTrained -> "Выучено примеров: ${trainingExamples.size} · ответы сохраняются на устройстве"
-                else -> "Нажми «Обучить» вверху, чтобы выучить простые ответы"
+                trainingProgress >= 0 -> "Обрабатываю примеры: $trainingProgress%"
+                isTrained -> "Примеров в памяти: $learnedExampleCount · переписка сохраняется"
+                else -> "Нажми «Обучить»: обработка примеров займёт одну минуту"
             },
             color = TextMuted,
             fontSize = 11.sp
@@ -338,6 +432,23 @@ private fun MessageBubble(message: ChatMessage) {
                 }
                 Text(message.text, color = TextPrimary, fontSize = 15.sp, lineHeight = 22.sp)
             }
+        }
+    }
+}
+
+@Composable
+private fun ThinkingBubble() {
+    Surface(
+        color = Panel,
+        shape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp),
+        modifier = Modifier.fillMaxWidth(0.86f)
+    ) {
+        Column(Modifier.padding(horizontal = 15.dp, vertical = 12.dp)) {
+            Text("DIMA", color = Lime, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(5.dp))
+            Text("Думаю над ответом…", color = TextPrimary, fontSize = 15.sp)
+            Spacer(Modifier.height(3.dp))
+            Text("Сверяю вопрос с примерами и памятью", color = TextMuted, fontSize = 11.sp)
         }
     }
 }
@@ -401,51 +512,175 @@ private fun Composer(
 }
 
 private class LocalLearningModel(private val preferences: SharedPreferences) {
-    fun isTrained(): Boolean = !preferences.getString("examples", null).isNullOrBlank()
+    private val pendingExamples = mutableListOf<TrainingExample>()
+    private var nextTrainingExample = 0
 
-    fun train() {
-        val examples = JSONArray()
-        trainingExamples.forEach { example ->
-            examples.put(
+    fun isTrained(): Boolean =
+        preferences.getBoolean("is_trained", false) || loadExamples().isNotEmpty()
+
+    fun exampleCount(): Int =
+        (trainingExamples + loadExamples()).distinctBy { normalize(it.question) }.size
+
+    fun beginTraining() {
+        pendingExamples.clear()
+        nextTrainingExample = 0
+    }
+
+    fun processTrainingProgress(progress: Int) {
+        val target = (trainingExamples.size * progress / 100).coerceIn(0, trainingExamples.size)
+        while (nextTrainingExample < target) {
+            pendingExamples.add(trainingExamples[nextTrainingExample])
+            nextTrainingExample++
+        }
+    }
+
+    fun finishTraining() {
+        pendingExamples.addAll(trainingExamples.drop(nextTrainingExample))
+        val merged = (loadExamples() + pendingExamples + trainingExamples)
+            .distinctBy { normalize(it.question) }
+        saveExamples(merged)
+        preferences.edit().putBoolean("is_trained", true).apply()
+        pendingExamples.clear()
+        nextTrainingExample = 0
+    }
+
+    fun loadConversation(): List<ChatMessage> {
+        val saved = preferences.getString("conversation", null) ?: return emptyList()
+        return runCatching {
+            val messages = JSONArray(saved)
+            List(messages.length()) { index ->
+                val message = messages.getJSONObject(index)
+                ChatMessage(
+                    text = message.getString("text"),
+                    fromAssistant = message.getBoolean("assistant")
+                )
+            }
+        }.getOrDefault(emptyList())
+    }
+
+    fun saveConversation(messages: List<ChatMessage>) {
+        val saved = JSONArray()
+        messages.takeLast(MAX_SAVED_MESSAGES).forEach { message ->
+            saved.put(
+                JSONObject()
+                    .put("text", message.text)
+                    .put("assistant", message.fromAssistant)
+            )
+        }
+        preferences.edit().putString("conversation", saved.toString()).apply()
+    }
+
+    fun reply(prompt: String, conversation: List<ChatMessage>): String {
+        rememberFact(prompt)?.let { return it }
+
+        if (isMemoryQuestion(prompt)) {
+            val facts = preferences.getStringSet("memories", emptySet()).orEmpty()
+            return if (facts.isEmpty()) {
+                "Пока у меня нет сохранённых заметок. Напиши «Запомни, что ...», и я сохраню это на устройстве."
+            } else {
+                "Вот что я запомнил: ${facts.joinToString("; ")}."
+            }
+        }
+
+        if (!isTrained()) {
+            return "Сначала нажми «Обучить» вверху. Обработка примеров займёт одну минуту."
+        }
+
+        val queryWords = words(prompt)
+        if (queryWords.isEmpty()) return "Напиши немного подробнее, и я попробую найти подходящий ответ."
+
+        val previousQuestion = conversation.lastOrNull { !it.fromAssistant }?.text.orEmpty()
+        val searchText = if (queryWords.size <= 3 && previousQuestion.isNotBlank()) {
+            "$previousQuestion $prompt"
+        } else {
+            prompt
+        }
+        val searchWords = words(searchText)
+        val examples = (trainingExamples + loadExamples())
+            .distinctBy { normalize(it.question) }
+        var bestAnswer: String? = null
+        var bestScore = 0.0
+        for (example in examples) {
+            val exampleWords = words(example.question)
+            val overlap = searchWords.intersect(exampleWords).size
+            val score = overlap / sqrt((searchWords.size * exampleWords.size).toDouble())
+            if (score > bestScore) {
+                bestScore = score
+                bestAnswer = example.answer
+            }
+        }
+
+        if (bestScore >= 0.25) {
+            val answer = bestAnswer.orEmpty()
+            saveLearnedExample(TrainingExample(prompt, answer))
+            return answer
+        }
+        return "Я пока не нашёл подходящий ответ в своих примерах. Попробуй спросить иначе или расскажи мне об этом через «Запомни, что ...»."
+    }
+
+    private fun rememberFact(prompt: String): String? {
+        val explicitFact = Regex("""(?iu)^(?:запомни|запиши)(?:\s+мне)?\s*,?\s*(?:что\s+)?(.+)$""")
+            .find(prompt.trim())
+            ?.groupValues
+            ?.getOrNull(1)
+        val name = Regex("""(?iu)\bменя зовут\s+([\p{L}-]+)""")
+            .find(prompt)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.let { "Пользователя зовут $it" }
+        val like = Regex("""(?iu)\bя люблю\s+(.+)""")
+            .find(prompt)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.let { "Пользователь любит $it" }
+        val fact = explicitFact ?: name ?: like ?: return null
+        val memories = preferences.getStringSet("memories", emptySet()).orEmpty().toMutableSet()
+        memories.add(fact.trim().trimEnd('.', '!'))
+        preferences.edit().putStringSet("memories", memories).apply()
+        return "Хорошо, запомнил: ${fact.trim().trimEnd('.', '!')}."
+    }
+
+    private fun isMemoryQuestion(prompt: String): Boolean =
+        Regex("""(?iu)(что ты помнишь|что ты запомнил|что ты знаешь обо мне|что я просил запомнить)""")
+            .containsMatchIn(prompt)
+
+    private fun loadExamples(): List<TrainingExample> {
+        val saved = preferences.getString("examples", null) ?: return emptyList()
+        return runCatching {
+            val examples = JSONArray(saved)
+            List(examples.length()) { index ->
+                val example = examples.getJSONObject(index)
+                TrainingExample(example.getString("question"), example.getString("answer"))
+            }
+        }.getOrDefault(emptyList())
+    }
+
+    private fun saveExamples(training: List<TrainingExample>) {
+        val json = JSONArray()
+        training.forEach { example ->
+            json.put(
                 JSONObject()
                     .put("question", example.question)
                     .put("answer", example.answer)
             )
         }
-        preferences.edit().putString("examples", examples.toString()).apply()
+        preferences.edit().putString("examples", json.toString()).apply()
     }
 
-    fun reply(prompt: String): String {
-        val storedExamples = preferences.getString("examples", null)
-            ?: return "Сначала нажми «Обучить» вверху. Я выучу несколько простых ответов и сохраню их на устройстве."
-        val queryWords = words(prompt)
-        if (queryWords.isEmpty()) return "Напиши немного подробнее, и я попробую найти подходящий ответ."
-
-        val examples = JSONArray(storedExamples)
-        var bestAnswer: String? = null
-        var bestScore = 0.0
-        for (index in 0 until examples.length()) {
-            val example = examples.getJSONObject(index)
-            val exampleWords = words(example.getString("question"))
-            val overlap = queryWords.intersect(exampleWords).size
-            val score = overlap / sqrt((queryWords.size * exampleWords.size).toDouble())
-            if (score > bestScore) {
-                bestScore = score
-                bestAnswer = example.getString("answer")
-            }
-        }
-
-        return if (bestScore >= 0.25) {
-            bestAnswer.orEmpty()
-        } else {
-            "Я пока знаю только простые примеры. Попробуй спросить о приветствии, ИИ, погоде или попросить шутку."
-        }
+    private fun saveLearnedExample(example: TrainingExample) {
+        val examples = (loadExamples().filterNot { normalize(it.question) == normalize(example.question) } + example)
+            .takeLast(500)
+        saveExamples(examples)
     }
 
-    private fun words(text: String): Set<String> =
-        Regex("[a-zа-яё0-9]+", RegexOption.IGNORE_CASE)
+    private fun normalize(text: String): String = text.trim().lowercase().replace(Regex("\\s+"), " ")
+
+    private fun words(text: String): Set<String> {
+        val commonWords = setOf("что", "как", "это", "мне", "меня", "тебя", "твой", "для", "или", "про")
+        return Regex("[a-zа-яё0-9]+", RegexOption.IGNORE_CASE)
             .findAll(text.lowercase())
             .map { it.value }
-            .filter { it.length > 1 }
+            .filter { it.length > 1 && it !in commonWords }
             .toSet()
+    }
 }
