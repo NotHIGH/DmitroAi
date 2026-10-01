@@ -7,6 +7,7 @@ plugins {
 android {
     namespace = "com.dmitroai.app"
     compileSdk = 35
+    ndkVersion = "29.0.13113456"
 
     defaultConfig {
         applicationId = "com.dmitroai.app"
@@ -14,6 +15,26 @@ android {
         targetSdk = 35
         versionCode = 3
         versionName = "0.0.3"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+
+        externalNativeBuild {
+            cmake {
+                arguments += listOf(
+                    "-DCMAKE_BUILD_TYPE=Release",
+                    "-DLLAMA_BUILD_COMMON=OFF",
+                    "-DLLAMA_BUILD_TESTS=OFF",
+                    "-DLLAMA_BUILD_TOOLS=OFF",
+                    "-DLLAMA_BUILD_EXAMPLES=OFF",
+                    "-DLLAMA_BUILD_SERVER=OFF",
+                    "-DLLAMA_BUILD_APP=OFF",
+                    "-DGGML_NATIVE=OFF",
+                    "-DGGML_CPU_ALL_VARIANTS=ON"
+                )
+            }
+        }
     }
 
     compileOptions {
@@ -23,6 +44,13 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.31.6"
+        }
     }
 }
 

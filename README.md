@@ -1,27 +1,29 @@
 # Dima AI
 
-Android chat app for the `Dima-dian-0.0.3` model.
+Android chat app with a pretrained Russian-capable Qwen3 model running locally through llama.cpp. No cloud AI key or account is required.
 
-Tap **Обучить** to load the built-in basic answers (usually under one second). The header also has toggles for automatic learning and Internet access. For generated, context-aware replies, add your own API key using the key icon. The app saves conversation and notes on the device.
+## First start
+
+Tap **Qwen 1,28 ГБ** to download the quantized model once (about 1.28 GB). After it loads, replies are generated on-device and work offline. The download needs an Internet connection and at least 1.4 GB of free storage. Model loading needs about 2.5 GB of available RAM; speed depends on the phone's CPU and memory.
+
+Use the globe button to enable or disable Internet access. With Internet enabled, send a public HTTPS page link in the chat to read and summarize its HTML/text content. PDFs and private/local addresses are not supported. Other unknown factual questions can fall back to Russian Wikipedia.
+
+The app also saves chat history and explicit notes such as `Запомни, что я люблю космос` on the device. The local dictionary helps with synonyms and spelling suggestions; it is not used as a replacement for the model.
+
+## Model and dictionary
+
+The model is `Qwen3-1.7B-Q4_K_M` in GGUF format, converted by ggml-org from Qwen/Qwen3-1.7B. The model weights are downloaded separately and are not embedded in the APK. Qwen is licensed under Apache-2.0; see `app/src/main/assets/QWEN_MODEL_LICENSE.txt`. llama.cpp is licensed under MIT; see `app/src/main/assets/LLAMA_CPP_LICENSE.txt`.
+
+The app includes N. Abramov's Russian synonym dictionary: 19,430 entries and 77,204 synonyms, without definitions. It is distributed under MIT; see `app/src/main/assets/DICTIONARY_LICENSE.txt`.
 
 ## Build
 
-Open the project in Android Studio, or build the debug APK with Gradle after installing Android SDK platform 35:
+GitHub Actions installs Android SDK, NDK, and CMake, then builds the debug APK on pushes and pull requests to `main` or `master`. Start it manually from Actions with **Build Android APK**. Download `Dima-dian-0.0.3-debug-apk` from the completed run.
+
+With the same Android SDK, NDK 29, and CMake 3.31.6 installed locally:
 
 ```sh
 gradle assembleDebug
 ```
 
-The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
-
-## Dictionary and search
-
-The app bundles the full available JSON export of N. Abramov's Russian synonym dictionary: 19,430 entries and 77,204 synonyms, with definitions omitted. Entries contain their source-provided variants (up to 92); spelling suggestions use edit distance. The source data is distributed under MIT; its license is included at `app/src/main/assets/DICTIONARY_LICENSE.txt`. The export was published by Egor Rudinsky; the source notes conversion by Aleksandr Ilin.
-
-The globe button enables or disables HTTPS access. Word and synonym lookup stays local; broader questions use Russian Wikipedia when no AI key is configured. The app does not expose hidden chain-of-thought.
-
-## Generative AI
-
-For natural, context-aware replies, open the key icon and add a personal Pollinations API key from `https://enter.pollinations.ai/keys`. The key is encrypted with Android Keystore. When Internet is enabled and a key is configured, the app sends the latest 12 chat messages and matching dictionary hints to the hosted `openai/gpt-5.4-nano` model. The service may apply account credit limits or charges. Without a key, local dictionary matching and Wikipedia lookup remain available.
-
-GitHub Actions builds the APK on pushes and pull requests to `main` or `master`. You can also start a build from the Actions tab with **Build Android APK**. Download the `Dima-dian-0.0.3-debug-apk` artifact from the completed run.
+The APK is written to `app/build/outputs/apk/debug/app-debug.apk`; it contains the app and native runtime, not the 1.28 GB model weights.
