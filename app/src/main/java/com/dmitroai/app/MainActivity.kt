@@ -2,7 +2,6 @@ package com.dmitroai.app
 
 import android.os.Bundle
 import android.content.SharedPreferences
-import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -33,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,8 +61,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.sqrt
@@ -89,7 +91,7 @@ private val trainingExamples = listOf(
     TrainingExample("доброе утро", "Доброе утро! Пусть день начнётся хорошо."),
     TrainingExample("расскажи шутку", "Почему программист путает Хэллоуин и Рождество? Потому что OCT 31 = DEC 25."),
     TrainingExample("сколько будет два плюс два", "Два плюс два будет четыре."),
-    TrainingExample("какая сегодня погода", "Я пока не подключён к интернету и не знаю текущую погоду."),
+    TrainingExample("какая сегодня погода", "Для текущей погоды нужен специальный погодный источник; в Википедии нет прогноза на сегодня."),
     TrainingExample("помоги придумать идею", "Давай! Расскажи тему и для кого нужна идея."),
     TrainingExample("что ты такое", "Я Dima-dian-0.0.3 — небольшой чат-помощник, который учится на простых примерах."),
     TrainingExample("добрый день", "Добрый день! Что будем делать?"),
@@ -129,7 +131,7 @@ private val trainingExamples = listOf(
     TrainingExample("мне грустно", "Жаль, что тебе грустно. Иногда помогает поговорить с близким человеком и рассказать, что случилось."),
     TrainingExample("я устал", "Сделай небольшой перерыв, выпей воды и отдохни."),
     TrainingExample("ты живой", "Нет, я программа в телефоне. Но я могу отвечать на сообщения."),
-    TrainingExample("у тебя есть интернет", "Сейчас у меня нет подключения к интернету. Я отвечаю по локальным примерам."),
+    TrainingExample("у тебя есть интернет", "Да, если переключатель интернета включён, я могу искать справочные статьи в Википедии."),
     TrainingExample("кто тебя создал", "Я Dima-dian-0.0.3 — проект персонального помощника Dima AI."),
     TrainingExample("какая твоя версия", "Моя версия — Dima-dian-0.0.3."),
     TrainingExample("что ты помнишь", "Я могу сохранять переписку и факты, которые ты попросишь запомнить."),
@@ -143,7 +145,7 @@ private val trainingExamples = listOf(
     TrainingExample("что такое слово", "Слово — часть речи или языка, которая выражает значение."),
     TrainingExample("что такое книга", "Книга — произведение с текстом или изображениями, напечатанное или электронное."),
     TrainingExample("как дела у тебя", "Спасибо, у меня всё хорошо. Я готов помочь."),
-    TrainingExample("расскажи о себе", "Я Dima-dian-0.0.3. Пока я работаю без интернета и отвечаю по примерам, сохранённым на устройстве."),
+    TrainingExample("расскажи о себе", "Я Dima-dian-0.0.3. Ищу знакомые слова в локальном словаре, а при необходимости могу обратиться к Википедии."),
     TrainingExample("что делать если скучно", "Можно прогуляться, почитать, порисовать или начать небольшой творческий проект."),
     TrainingExample("как тебя обучить", "Нажми кнопку «Обучить». Я обработаю примеры и сохраню их на устройстве."),
     TrainingExample("ты можешь ошибаться", "Да. Я небольшой прототип и иногда могу подобрать неподходящий ответ."),
@@ -156,7 +158,6 @@ private val trainingExamples = listOf(
     TrainingExample("как попросить тебя запомнить", "Напиши: «Запомни, что я люблю космос». Я сохраню эту заметку на устройстве.")
 )
 
-private const val TRAINING_DURATION_MS = 60_000L
 private const val MAX_SAVED_MESSAGES = 200
 
 class MainActivity : ComponentActivity() {
@@ -177,34 +178,46 @@ private data class ChatMessage(val text: String, val fromAssistant: Boolean)
 @Composable
 private fun ChatScreen() {
     val context = LocalContext.current
+    val dictionary = remember { RussianDictionary() }
     val model = remember {
-        LocalLearningModel(context.getSharedPreferences("dima_model", 0))
+        LocalLearningModel(context.getSharedPreferences("dima_model", 0), dictionary)
     }
     val messages = remember {
         mutableStateListOf<ChatMessage>().apply { addAll(model.loadConversation()) }
     }
     var draft by remember { mutableStateOf("") }
     var isTrained by remember { mutableStateOf(model.isTrained()) }
+    var isAutoLearning by remember { mutableStateOf(model.isAutoLearning()) }
+    var isInternetEnabled by remember { mutableStateOf(model.isInternetEnabled()) }
+    var dictionaryWordCount by remember { mutableIntStateOf(0) }
     var trainingProgress by remember { mutableIntStateOf(-1) }
     var learnedExampleCount by remember { mutableIntStateOf(model.exampleCount()) }
     var isThinking by remember { mutableStateOf(false) }
+    var isSearchingOnline by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
-    fun startTraining() {
+    LaunchedEffect(dictionary) {
+        dictionaryWordCount = withContext(Dispatchers.IO) {
+            runCatching {
+                context.assets.open("russian_synonyms.json").use(dictionary::load)
+                dictionary.wordCount
+            }.getOrDefault(0)
+        }
+    }
+
+    fun trainOrToggleLearning() {
         if (trainingProgress >= 0) return
+        if (isTrained) {
+            isAutoLearning = !isAutoLearning
+            model.setAutoLearning(isAutoLearning)
+            return
+        }
         scope.launch {
-            model.beginTraining()
             trainingProgress = 0
-            val startedAt = SystemClock.elapsedRealtime()
-            while (SystemClock.elapsedRealtime() - startedAt < TRAINING_DURATION_MS) {
-                val elapsed = SystemClock.elapsedRealtime() - startedAt
-                trainingProgress = (elapsed * 100 / TRAINING_DURATION_MS).toInt().coerceIn(0, 99)
-                model.processTrainingProgress(trainingProgress)
-                delay(250)
-            }
-            model.finishTraining()
+            kotlinx.coroutines.yield()
+            model.train()
             isTrained = true
             learnedExampleCount = model.exampleCount()
             trainingProgress = 100
@@ -223,10 +236,13 @@ private fun ChatScreen() {
         isThinking = true
         scope.launch {
             delay(900)
-            val answer = model.reply(cleanText, messages.dropLast(1).toList())
+            val answer = model.reply(cleanText, messages.dropLast(1).toList()) {
+                isSearchingOnline = true
+            }
             messages.add(ChatMessage(answer, fromAssistant = true))
             model.saveConversation(messages)
             learnedExampleCount = model.exampleCount()
+            isSearchingOnline = false
             isThinking = false
         }
     }
@@ -243,8 +259,15 @@ private fun ChatScreen() {
         topBar = {
             Header(
                 isTrained = isTrained,
+                isAutoLearning = isAutoLearning,
+                isInternetEnabled = isInternetEnabled,
+                dictionaryWordCount = dictionaryWordCount,
                 trainingProgress = trainingProgress,
-                onTrain = ::startTraining,
+                onTrain = ::trainOrToggleLearning,
+                onToggleInternet = {
+                    isInternetEnabled = !isInternetEnabled
+                    model.setInternetEnabled(isInternetEnabled)
+                },
                 onNewChat = {
                     messages.clear()
                     model.saveConversation(messages)
@@ -273,6 +296,8 @@ private fun ChatScreen() {
                 item {
                     Welcome(
                         isTrained = isTrained,
+                        isAutoLearning = isAutoLearning,
+                        dictionaryWordCount = dictionaryWordCount,
                         trainingProgress = trainingProgress,
                         learnedExampleCount = learnedExampleCount,
                         onSuggestion = ::sendMessage
@@ -283,7 +308,7 @@ private fun ChatScreen() {
                 MessageBubble(message)
             }
             if (isThinking) {
-                item { ThinkingBubble() }
+                item { ThinkingBubble(isSearchingOnline) }
             }
             item { Spacer(Modifier.height(8.dp)) }
         }
@@ -293,8 +318,12 @@ private fun ChatScreen() {
 @Composable
 private fun Header(
     isTrained: Boolean,
+    isAutoLearning: Boolean,
+    isInternetEnabled: Boolean,
+    dictionaryWordCount: Int,
     trainingProgress: Int,
     onTrain: () -> Unit,
+    onToggleInternet: () -> Unit,
     onNewChat: () -> Unit
 ) {
     Row(
@@ -316,11 +345,20 @@ private fun Header(
         Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
             Text("DIMA AI", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Text("Dima-dian-0.0.3", color = TextMuted, fontSize = 12.sp)
+            Text(
+                if (dictionaryWordCount > 0) "$dictionaryWordCount слов" else "Загружаю словарь...",
+                color = TextMuted,
+                fontSize = 10.sp
+            )
         }
         Surface(
             onClick = onTrain,
             enabled = trainingProgress < 0,
-            color = if (trainingProgress >= 0) PanelRaised else Lime,
+            color = when {
+                trainingProgress >= 0 -> PanelRaised
+                isTrained && !isAutoLearning -> PanelRaised
+                else -> Lime
+            },
             shape = RoundedCornerShape(12.dp)
         ) {
             Row(
@@ -330,17 +368,30 @@ private fun Header(
                 Icon(
                     Icons.Default.School,
                     contentDescription = null,
-                    tint = if (trainingProgress >= 0) TextMuted else Background,
+                    tint = if (trainingProgress >= 0 || (isTrained && !isAutoLearning)) TextMuted else Background,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(Modifier.width(5.dp))
                 Text(
-                    if (trainingProgress >= 0) "${trainingProgress}%" else "Обучить",
-                    color = if (trainingProgress >= 0) TextMuted else Background,
+                    text = when {
+                        trainingProgress >= 0 -> "Готовлю..."
+                        !isTrained -> "Обучить"
+                        isAutoLearning -> "Авто: ВКЛ"
+                        else -> "Авто: ВЫКЛ"
+                    },
+                    color = if (trainingProgress >= 0 || (isTrained && !isAutoLearning)) TextMuted else Background,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
+        IconButton(onClick = onToggleInternet, modifier = Modifier.size(36.dp)) {
+            Icon(
+                Icons.Default.Public,
+                contentDescription = if (isInternetEnabled) "Интернет включён" else "Интернет выключен",
+                tint = if (isInternetEnabled) Lime else TextMuted,
+                modifier = Modifier.size(20.dp)
+            )
         }
         IconButton(onClick = onNewChat, modifier = Modifier.size(42.dp)) {
             Icon(Icons.Default.Add, contentDescription = "Новий чат", tint = TextPrimary)
@@ -351,6 +402,8 @@ private fun Header(
 @Composable
 private fun Welcome(
     isTrained: Boolean,
+    isAutoLearning: Boolean,
+    dictionaryWordCount: Int,
     trainingProgress: Int,
     learnedExampleCount: Int,
     onSuggestion: (String) -> Unit
@@ -381,9 +434,9 @@ private fun Welcome(
         Spacer(Modifier.height(18.dp))
         Text(
             when {
-                trainingProgress >= 0 -> "Обрабатываю примеры: $trainingProgress%"
-                isTrained -> "Примеров в памяти: $learnedExampleCount · переписка сохраняется"
-                else -> "Нажми «Обучить»: обработка примеров займёт одну минуту"
+                trainingProgress >= 0 -> "Сохраняю базовые ответы..."
+                isTrained -> "Словарь: $dictionaryWordCount слов · автообучение ${if (isAutoLearning) "включено" else "выключено"}"
+                else -> "Базовые ответы загрузятся менее чем за секунду"
             },
             color = TextMuted,
             fontSize = 11.sp
@@ -437,7 +490,7 @@ private fun MessageBubble(message: ChatMessage) {
 }
 
 @Composable
-private fun ThinkingBubble() {
+private fun ThinkingBubble(isSearchingOnline: Boolean) {
     Surface(
         color = Panel,
         shape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp),
@@ -446,9 +499,17 @@ private fun ThinkingBubble() {
         Column(Modifier.padding(horizontal = 15.dp, vertical = 12.dp)) {
             Text("DIMA", color = Lime, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(5.dp))
-            Text("Думаю над ответом…", color = TextPrimary, fontSize = 15.sp)
+            Text(
+                if (isSearchingOnline) "Ищу в интернете…" else "Думаю над ответом…",
+                color = TextPrimary,
+                fontSize = 15.sp
+            )
             Spacer(Modifier.height(3.dp))
-            Text("Сверяю вопрос с примерами и памятью", color = TextMuted, fontSize = 11.sp)
+            Text(
+                if (isSearchingOnline) "Проверяю статью Википедии" else "Сверяю вопрос со словарём и памятью",
+                color = TextMuted,
+                fontSize = 11.sp
+            )
         }
     }
 }
@@ -511,37 +572,33 @@ private fun Composer(
     }
 }
 
-private class LocalLearningModel(private val preferences: SharedPreferences) {
-    private val pendingExamples = mutableListOf<TrainingExample>()
-    private var nextTrainingExample = 0
-
+private class LocalLearningModel(
+    private val preferences: SharedPreferences,
+    private val dictionary: RussianDictionary
+) {
     fun isTrained(): Boolean =
         preferences.getBoolean("is_trained", false) || loadExamples().isNotEmpty()
+
+    fun isAutoLearning(): Boolean = preferences.getBoolean("auto_learning", false)
+
+    fun isInternetEnabled(): Boolean = preferences.getBoolean("internet_enabled", true)
+
+    fun setAutoLearning(enabled: Boolean) {
+        preferences.edit().putBoolean("auto_learning", enabled).apply()
+    }
+
+    fun setInternetEnabled(enabled: Boolean) {
+        preferences.edit().putBoolean("internet_enabled", enabled).apply()
+    }
 
     fun exampleCount(): Int =
         (trainingExamples + loadExamples()).distinctBy { normalize(it.question) }.size
 
-    fun beginTraining() {
-        pendingExamples.clear()
-        nextTrainingExample = 0
-    }
-
-    fun processTrainingProgress(progress: Int) {
-        val target = (trainingExamples.size * progress / 100).coerceIn(0, trainingExamples.size)
-        while (nextTrainingExample < target) {
-            pendingExamples.add(trainingExamples[nextTrainingExample])
-            nextTrainingExample++
-        }
-    }
-
-    fun finishTraining() {
-        pendingExamples.addAll(trainingExamples.drop(nextTrainingExample))
-        val merged = (loadExamples() + pendingExamples + trainingExamples)
+    fun train() {
+        val merged = (loadExamples() + trainingExamples)
             .distinctBy { normalize(it.question) }
         saveExamples(merged)
         preferences.edit().putBoolean("is_trained", true).apply()
-        pendingExamples.clear()
-        nextTrainingExample = 0
     }
 
     fun loadConversation(): List<ChatMessage> {
@@ -570,7 +627,11 @@ private class LocalLearningModel(private val preferences: SharedPreferences) {
         preferences.edit().putString("conversation", saved.toString()).apply()
     }
 
-    fun reply(prompt: String, conversation: List<ChatMessage>): String {
+    suspend fun reply(
+        prompt: String,
+        conversation: List<ChatMessage>,
+        onInternetSearch: () -> Unit
+    ): String {
         rememberFact(prompt)?.let { return it }
 
         if (isMemoryQuestion(prompt)) {
@@ -583,7 +644,7 @@ private class LocalLearningModel(private val preferences: SharedPreferences) {
         }
 
         if (!isTrained()) {
-            return "Сначала нажми «Обучить» вверху. Обработка примеров займёт одну минуту."
+            return "Сначала нажми «Обучить» вверху. Базовые ответы загрузятся менее чем за секунду."
         }
 
         val queryWords = words(prompt)
@@ -612,10 +673,58 @@ private class LocalLearningModel(private val preferences: SharedPreferences) {
 
         if (bestScore >= 0.25) {
             val answer = bestAnswer.orEmpty()
-            saveLearnedExample(TrainingExample(prompt, answer))
+            if (isAutoLearning()) saveLearnedExample(TrainingExample(prompt, answer))
             return answer
         }
-        return "Я пока не нашёл подходящий ответ в своих примерах. Попробуй спросить иначе или расскажи мне об этом через «Запомни, что ...»."
+
+        val dictionaryMatches = dictionary.search(prompt)
+        val synonymQuestion = Regex(
+            "(?iu)(синоним|как пишется|проверь слово|исправь опечатку)"
+        ).containsMatchIn(prompt)
+        if (dictionaryMatches.isNotEmpty() && (synonymQuestion || queryWords.size == 1)) {
+            val suggestions = dictionaryMatches.take(3).joinToString("\n") { match ->
+                val correction = if (match.editDistance > 0) {
+                    "Возможно, ты имел в виду «${match.correctedToken}». "
+                } else {
+                    ""
+                }
+                val variants = (match.word.synonyms + match.word.similarWords)
+                    .distinctBy { it.lowercase() }
+                    .take(12)
+                val synonymText = if (variants.isEmpty()) {
+                    "Варианты не указаны."
+                } else {
+                    "Варианты: ${variants.joinToString(", ")}."
+                }
+                "$correction${match.word.name}: $synonymText"
+            }
+            if (isAutoLearning()) {
+                dictionaryMatches.firstOrNull()?.let { match ->
+                    saveLearnedExample(TrainingExample(prompt, "Близкие слова: ${match.word.synonyms.take(12).joinToString(", ")}"))
+                }
+            }
+            return suggestions
+        }
+
+        if (isInternetEnabled()) {
+            onInternetSearch()
+            val onlineAnswer = withContext(Dispatchers.IO) { InternetSearch.search(prompt) }
+            if (onlineAnswer != null) return onlineAnswer
+        }
+
+        if (dictionaryMatches.isNotEmpty()) {
+            val match = dictionaryMatches.first()
+            val correction = if (match.editDistance > 0) {
+                "Возможно, ты имел в виду «${match.correctedToken}». "
+            } else {
+                ""
+            }
+            val variants = (match.word.synonyms + match.word.similarWords)
+                .distinctBy { it.lowercase() }
+                .take(12)
+            return "$correction${match.word.name}: ${variants.joinToString(", ").ifBlank { "варианты в словаре не указаны" }}."
+        }
+        return "Не нашёл это в локальном словаре${if (isInternetEnabled()) " или Википедии" else ""}. Попробуй переформулировать запрос."
     }
 
     private fun rememberFact(prompt: String): String? {
