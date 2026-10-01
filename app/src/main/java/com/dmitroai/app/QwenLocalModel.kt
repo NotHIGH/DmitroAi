@@ -11,11 +11,13 @@ object QwenLocalModel {
 
     suspend fun load(modelPath: String): Boolean = withContext(Dispatchers.IO) {
         synchronized(lock) {
-            if (loaded) return@synchronized true
-            runCatching {
-                System.loadLibrary("dima-llama")
-                loaded = nativeLoadModel(modelPath) == 0
-            }.getOrDefault(false)
+            if (!loaded) {
+                loaded = runCatching {
+                    System.loadLibrary("dima-llama")
+                    nativeLoadModel(modelPath) == 0
+                }.getOrDefault(false)
+            }
+            loaded
         }
     }
 
