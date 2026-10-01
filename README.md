@@ -2,7 +2,7 @@
 
 Android chat app for the `Dima-dian-0.0.3` model.
 
-Tap **Обучить** to load the built-in basic answers (usually under one second). Afterward, the header button toggles automatic learning from matched chat answers on or off. The app saves examples, conversation, and notes you ask it to remember on the device. This is a lightweight offline retrieval prototype, not a neural network; no model weights or inference API are connected yet.
+Tap **Обучить** to load the built-in basic answers (usually under one second). The header also has toggles for automatic learning and Internet access. For generated, context-aware replies, add your own API key using the key icon. The app saves conversation and notes on the device.
 
 ## Build
 
@@ -18,16 +18,10 @@ The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
 The app bundles the full available JSON export of N. Abramov's Russian synonym dictionary: 19,430 entries and 77,204 synonyms, with definitions omitted. Entries contain their source-provided variants (up to 92); spelling suggestions use edit distance. The source data is distributed under MIT; its license is included at `app/src/main/assets/DICTIONARY_LICENSE.txt`. The export was published by Egor Rudinsky; the source notes conversion by Aleksandr Ilin.
 
-The globe button enables or disables HTTPS search in Russian Wikipedia. Word and synonym lookup stays local; broader questions can use Wikipedia when enabled. This app does not include a generative language model and does not expose hidden chain-of-thought.
+The globe button enables or disables HTTPS access. Word and synonym lookup stays local; broader questions use Russian Wikipedia when no AI key is configured. The app does not expose hidden chain-of-thought.
 
 ## Generative AI
 
 For natural, context-aware replies, open the key icon and add a personal Pollinations API key from `https://enter.pollinations.ai/keys`. The key is encrypted with Android Keystore. When Internet is enabled and a key is configured, the app sends the latest 12 chat messages and matching dictionary hints to the hosted `openai/gpt-5.4-nano` model. The service may apply account credit limits or charges. Without a key, local dictionary matching and Wikipedia lookup remain available.
-
-## Dictionary data
-
-The app includes the Russian synonym dictionary by N. Abramov, converted to JSON by Aleksandr Ilin and published by Egor Rudinsky. The bundled file contains 19,430 entries and 77,204 synonyms, without definitions. The dataset is distributed under MIT; its license is included at `app/src/main/assets/DICTIONARY_LICENSE.txt`.
-
-Unknown lookups can use Russian Wikipedia over HTTPS when the Internet toggle is enabled. Queries and answers are sent to Wikipedia; the app does not use a generative language model.
 
 GitHub Actions builds the APK on pushes and pull requests to `main` or `master`. You can also start a build from the Actions tab with **Build Android APK**. Download the `Dima-dian-0.0.3-debug-apk` artifact from the completed run.
