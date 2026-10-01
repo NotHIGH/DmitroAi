@@ -31,6 +31,7 @@ android {
                     "-DLLAMA_BUILD_SERVER=OFF",
                     "-DLLAMA_BUILD_APP=OFF",
                     "-DGGML_NATIVE=OFF",
+                    "-DGGML_BACKEND_DL=ON",
                     "-DGGML_CPU_ALL_VARIANTS=ON"
                 )
             }
