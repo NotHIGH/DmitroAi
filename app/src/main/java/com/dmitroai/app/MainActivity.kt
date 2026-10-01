@@ -32,14 +32,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +63,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -189,14 +194,41 @@ private fun ChatScreen() {
     var isTrained by remember { mutableStateOf(model.isTrained()) }
     var isAutoLearning by remember { mutableStateOf(model.isAutoLearning()) }
     var isInternetEnabled by remember { mutableStateOf(model.isInternetEnabled()) }
+    var isAiConfigured by remember { mutableStateOf(ApiKeyVault.hasKey(context)) }
+    var showAiSettings by remember { mutableStateOf(false) }
+    var apiKeyDraft by remember { mutableStateOf("") }
     var dictionaryWordCount by remember { mutableIntStateOf(0) }
     var trainingProgress by remember { mutableIntStateOf(-1) }
     var learnedExampleCount by remember { mutableIntStateOf(model.exampleCount()) }
     var isThinking by remember { mutableStateOf(false) }
-    var isSearchingOnline by remember { mutableStateOf(false) }
+    var onlineStatus by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
+
+    if (showAiSettings) {
+        AiSettingsDialog(
+            apiKey = apiKeyDraft,
+            isConfigured = isAiConfigured,
+            onApiKeyChange = { apiKeyDraft = it },
+            onSave = {
+                ApiKeyVault.save(context, apiKeyDraft)
+                isAiConfigured = ApiKeyVault.hasKey(context)
+                apiKeyDraft = ""
+                showAiSettings = false
+            },
+            onRemove = {
+                ApiKeyVault.save(context, "")
+                isAiConfigured = false
+                apiKeyDraft = ""
+                showAiSettings = false
+            },
+            onDismiss = {
+                apiKeyDraft = ""
+                showAiSettings = false
+            }
+        )
+    }
 
     LaunchedEffect(dictionary) {
         dictionaryWordCount = withContext(Dispatchers.IO) {
@@ -234,15 +266,26 @@ private fun ChatScreen() {
         draft = ""
         focusManager.clearFocus()
         isThinking = true
+        onlineStatus = ""
         scope.launch {
             delay(900)
-            val answer = model.reply(cleanText, messages.dropLast(1).toList()) {
-                isSearchingOnline = true
+            val chatHistory = messages.takeLast(12).map { message ->
+                AiMessage(
+                    role = if (message.fromAssistant) "assistant" else "user",
+                    content = message.text
+                )
             }
+            val answer = model.reply(
+                prompt = cleanText,
+                conversation = messages.dropLast(1).toList(),
+                apiKey = ApiKeyVault.read(context),
+                chatHistory = chatHistory,
+                onOnlineRequest = { onlineStatus = it }
+            )
             messages.add(ChatMessage(answer, fromAssistant = true))
             model.saveConversation(messages)
             learnedExampleCount = model.exampleCount()
-            isSearchingOnline = false
+            onlineStatus = ""
             isThinking = false
         }
     }
@@ -261,9 +304,11 @@ private fun ChatScreen() {
                 isTrained = isTrained,
                 isAutoLearning = isAutoLearning,
                 isInternetEnabled = isInternetEnabled,
+                isAiConfigured = isAiConfigured,
                 dictionaryWordCount = dictionaryWordCount,
                 trainingProgress = trainingProgress,
                 onTrain = ::trainOrToggleLearning,
+                onManageAi = { showAiSettings = true },
                 onToggleInternet = {
                     isInternetEnabled = !isInternetEnabled
                     model.setInternetEnabled(isInternetEnabled)
@@ -308,7 +353,7 @@ private fun ChatScreen() {
                 MessageBubble(message)
             }
             if (isThinking) {
-                item { ThinkingBubble(isSearchingOnline) }
+                item { ThinkingBubble(onlineStatus) }
             }
             item { Spacer(Modifier.height(8.dp)) }
         }
@@ -320,9 +365,11 @@ private fun Header(
     isTrained: Boolean,
     isAutoLearning: Boolean,
     isInternetEnabled: Boolean,
+    isAiConfigured: Boolean,
     dictionaryWordCount: Int,
     trainingProgress: Int,
     onTrain: () -> Unit,
+    onManageAi: () -> Unit,
     onToggleInternet: () -> Unit,
     onNewChat: () -> Unit
 ) {
@@ -393,10 +440,70 @@ private fun Header(
                 modifier = Modifier.size(20.dp)
             )
         }
+        IconButton(onClick = onManageAi, modifier = Modifier.size(36.dp)) {
+            Icon(
+                Icons.Default.Key,
+                contentDescription = if (isAiConfigured) "AI-ключ сохранён" else "Настроить AI-модель",
+                tint = if (isAiConfigured) Lime else TextMuted,
+                modifier = Modifier.size(19.dp)
+            )
+        }
         IconButton(onClick = onNewChat, modifier = Modifier.size(42.dp)) {
             Icon(Icons.Default.Add, contentDescription = "Новий чат", tint = TextPrimary)
         }
     }
+}
+
+@Composable
+private fun AiSettingsDialog(
+    apiKey: String,
+    isConfigured: Boolean,
+    onApiKeyChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Подключить AI-модель") },
+        text = {
+            Column {
+                Text("Нужен личный ключ Pollinations для генерации связных ответов.")
+                Spacer(Modifier.height(10.dp))
+                Text("Получить ключ: enter.pollinations.ai/keys", fontSize = 12.sp, color = TextMuted)
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = apiKey,
+                    onValueChange = onApiKeyChange,
+                    label = { Text("Личный API-ключ") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation()
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "Последние сообщения чата будут отправляться сервису Pollinations. " +
+                        "Возможны ограничения или списание кредитов. Не отправляй секретные данные.",
+                    fontSize = 12.sp,
+                    color = TextMuted
+                )
+                if (isConfigured) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Сохранённый ключ зашифрован Android Keystore.", fontSize = 12.sp, color = Lime)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onSave, enabled = apiKey.isNotBlank()) {
+                Text("Сохранить ключ")
+            }
+        },
+        dismissButton = {
+            Row {
+                if (isConfigured) TextButton(onClick = onRemove) { Text("Удалить") }
+                TextButton(onClick = onDismiss) { Text("Отмена") }
+            }
+        }
+    )
 }
 
 @Composable
@@ -490,7 +597,7 @@ private fun MessageBubble(message: ChatMessage) {
 }
 
 @Composable
-private fun ThinkingBubble(isSearchingOnline: Boolean) {
+private fun ThinkingBubble(onlineStatus: String) {
     Surface(
         color = Panel,
         shape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 5.dp),
@@ -500,13 +607,19 @@ private fun ThinkingBubble(isSearchingOnline: Boolean) {
             Text("DIMA", color = Lime, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(5.dp))
             Text(
-                if (isSearchingOnline) "Ищу в интернете…" else "Думаю над ответом…",
+                onlineStatus.ifBlank { "Думаю над ответом…" },
                 color = TextPrimary,
                 fontSize = 15.sp
             )
             Spacer(Modifier.height(3.dp))
             Text(
-                if (isSearchingOnline) "Проверяю статью Википедии" else "Сверяю вопрос со словарём и памятью",
+                if (onlineStatus.contains("Википедии")) {
+                    "Ищу справочную информацию"
+                } else if (onlineStatus.isNotBlank()) {
+                    "Учитываю контекст переписки"
+                } else {
+                    "Сверяю вопрос со словарём и памятью"
+                },
                 color = TextMuted,
                 fontSize = 11.sp
             )
@@ -630,7 +743,9 @@ private class LocalLearningModel(
     suspend fun reply(
         prompt: String,
         conversation: List<ChatMessage>,
-        onInternetSearch: () -> Unit
+        apiKey: String?,
+        chatHistory: List<AiMessage>,
+        onOnlineRequest: (String) -> Unit
     ): String {
         rememberFact(prompt)?.let { return it }
 
@@ -640,6 +755,20 @@ private class LocalLearningModel(
                 "Пока у меня нет сохранённых заметок. Напиши «Запомни, что ...», и я сохраню это на устройстве."
             } else {
                 "Вот что я запомнил: ${facts.joinToString("; ")}."
+            }
+        }
+
+        if (isInternetEnabled() && !apiKey.isNullOrBlank()) {
+            val dictionaryContext = dictionary.search(prompt)
+                .take(4)
+                .joinToString("; ") { match ->
+                    "${match.word.name}: ${(match.word.synonyms + match.word.similarWords).take(8).joinToString(", ")}"
+                }
+            onOnlineRequest("AI формує відповідь…")
+            val generatedAnswer = AiChatClient.generate(apiKey, chatHistory, dictionaryContext)
+            if (generatedAnswer != null) {
+                if (isAutoLearning()) saveLearnedExample(TrainingExample(prompt, generatedAnswer))
+                return generatedAnswer
             }
         }
 
@@ -707,7 +836,7 @@ private class LocalLearningModel(
         }
 
         if (isInternetEnabled()) {
-            onInternetSearch()
+            onOnlineRequest("Шукаю у Вікіпедії…")
             val onlineAnswer = withContext(Dispatchers.IO) { InternetSearch.search(prompt) }
             if (onlineAnswer != null) return onlineAnswer
         }

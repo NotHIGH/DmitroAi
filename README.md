@@ -20,6 +20,10 @@ The app bundles the full available JSON export of N. Abramov's Russian synonym d
 
 The globe button enables or disables HTTPS search in Russian Wikipedia. Word and synonym lookup stays local; broader questions can use Wikipedia when enabled. This app does not include a generative language model and does not expose hidden chain-of-thought.
 
+## Generative AI
+
+For natural, context-aware replies, open the key icon and add a personal Pollinations API key from `https://enter.pollinations.ai/keys`. The key is encrypted with Android Keystore. When Internet is enabled and a key is configured, the app sends the latest 12 chat messages and matching dictionary hints to the hosted `openai/gpt-5.4-nano` model. The service may apply account credit limits or charges. Without a key, local dictionary matching and Wikipedia lookup remain available.
+
 ## Dictionary data
 
 The app includes the Russian synonym dictionary by N. Abramov, converted to JSON by Aleksandr Ilin and published by Egor Rudinsky. The bundled file contains 19,430 entries and 77,204 synonyms, without definitions. The dataset is distributed under MIT; its license is included at `app/src/main/assets/DICTIONARY_LICENSE.txt`.
