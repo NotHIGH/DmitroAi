@@ -1,0 +1,45 @@
+<Application x:Class="DimaAI.Windows.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <SolidColorBrush x:Key="PageBrush" Color="#10130F" />
+        <SolidColorBrush x:Key="PanelBrush" Color="#191D18" />
+        <SolidColorBrush x:Key="RaisedBrush" Color="#232820" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#D8FF72" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#F2F3ED" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#A0A598" />
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Foreground" Value="#11140F" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#20251F" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="BorderBrush" Value="#343B31" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="14,11" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}" />
+        </Style>
+    </Application.Resources>
+</Application>

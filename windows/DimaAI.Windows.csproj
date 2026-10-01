@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>DimaAI</AssemblyName>
+    <RootNamespace>DimaAI.Windows</RootNamespace>
+    <Version>0.0.3</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LLamaSharp" Version="0.27.0" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.27.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\app\src\main\assets\QWEN_MODEL_LICENSE.txt"
+             Link="licenses\QWEN_MODEL_LICENSE.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\app\src\main\assets\LLAMA_CPP_LICENSE.txt"
+             Link="licenses\LLAMA_CPP_LICENSE.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -27,3 +27,7 @@ gradle assembleDebug
 ```
 
 The APK is written to `app/build/outputs/apk/debug/app-debug.apk`; it contains the app and native runtime, not the 1.28 GB model weights.
+
+## Windows 10
+
+The WPF version targets Windows 10/11 x64 and uses the same local Qwen3 GGUF model. The installer is built by the **Build Windows installer** GitHub Actions workflow. Download the `DimaAI-Windows-10-x64-Installer` artifact from its completed run. The installer does not contain the 1.28 GB weights; the app downloads them once on first use and then generates replies locally.
